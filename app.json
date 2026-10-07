@@ -63,14 +63,17 @@
           "locationWhenInUsePermission": "CivicLens uses your location to identify the relevant jurisdiction and place your report on the civic map.",
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false,
-          "isAndroidForegroundServiceEnabled": false
+          "isAndroidForegroundServiceEnabled": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
         }
       ],
       [
         "expo-image-picker",
         {
           "photosPermission": "CivicLens lets you analyze an existing photo of an infrastructure issue.",
-          "cameraPermission": false,
+          "cameraPermission": "CivicLens uses the camera to analyze infrastructure issues you point it at. Photos stay on your device unless you share them.",
           "microphonePermission": false
         }
       ],
