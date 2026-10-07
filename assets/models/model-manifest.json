@@ -1,0 +1,14 @@
+{
+  "file": "civiclens_vision.onnx",
+  "sha256": "14be80aafa62868f47fce313aa719789fa0c86a1d8ea82f0fbe079e5f0208941",
+  "bytes": 113870856,
+  "parts": [
+    "civiclens_vision.onnx.part0",
+    "civiclens_vision.onnx.part1"
+  ],
+  "source": "SigLIP 2 B/32 @256 (gs://big_vision/siglip2/siglip2_b32_256.npz), image tower only",
+  "license": "Apache-2.0 (SigLIP 2 weights, Google)",
+  "quantization": "MatMulNBits 8-bit weights, block 32, symmetric, accuracy_level 4",
+  "input": "pixels float32 [N,3,256,256] RGB 0..255",
+  "output": "embedding float32 [N,768] L2-normalised"
+}
