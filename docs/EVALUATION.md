@@ -189,6 +189,7 @@ quality rejections as misses.
 | --- | --- | --- |
 | PyTorch port vs Google's JAX reference | max abs. difference 4.3 × 10⁻⁷ (image embeddings), identical logits | [eval/parity.txt](eval/parity.txt) |
 | 8-bit model vs fp32 ONNX on 64 real photos | cosine mean 0.9995, min 0.9983 | [eval/quantization.json](eval/quantization.json) |
+| Browser (ONNX Runtime Web, WebAssembly) vs Node on the six Demo Mode photos | same outcome and category for all six; probabilities within 0.001 | `npm run test:web` |
 | Size | 113.9 MB (fp32: 378.4 MB) | `assets/models/model-manifest.json` |
 
 The classifier head was trained on embeddings from the same 8-bit model

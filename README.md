@@ -16,10 +16,11 @@ Challenge.
 > an Android or iOS device or emulator. What was verified there: 344
 > automated tests (including the real model running end to end), strict
 > TypeScript, lint, Metro bundles for Android and iOS, native project
-> generation for both platforms, and the screens rendered in a headless
-> browser. The model's accuracy was measured on 960 held-out photos through
-> the exact TypeScript code the app runs. **The app has not yet been run on
-> a physical phone**, and the live civic data services (Census,
+> generation for both platforms, and the web build running the model in
+> headless Chromium with the same answers as the evaluated pipeline. The
+> model's accuracy was measured on 960 held-out photos through the exact
+> TypeScript code the app runs. **The app has not yet been run on a
+> physical phone**, and the live civic data services (Census,
 > OpenStreetMap, SeeClickFix, city 311 portals) could not be reached from
 > the build environment. See [Limitations](#limitations).
 
@@ -149,10 +150,36 @@ npm install
 
 `npm install` also:
 1. applies `patches/onnxruntime-react-native+1.24.3.patch` (a fix for React
-   Native's New Architecture, which Expo SDK 57 requires), and
+   Native's New Architecture, which Expo SDK 57 requires),
 2. assembles the 114 MB vision model `assets/models/civiclens_vision.onnx`
    from the two committed parts and checks its SHA-256
-   (`scripts/assemble-model.js`).
+   (`scripts/assemble-model.js`), and
+3. copies ONNX Runtime Web into `public/ort/` for the browser build
+   (`scripts/copy-ort-web.js`).
+
+### Run in your browser (quickest)
+
+```bash
+npm run web          # dev server: http://localhost:8081
+npm run web:local    # production build: http://localhost:8080 (about 2× faster)
+```
+
+The full app runs in the browser, including the vision model: ONNX Runtime
+Web runs the same model file in a Web Worker using WebAssembly. Scan with
+your webcam, analyze a photo from disk, or use Demo Mode. Nothing is
+uploaded.
+
+- The first scan downloads the 114 MB model once. It is checked against its
+  SHA-256 and kept in the browser's Cache Storage, so later visits load it
+  from disk.
+- `npm run web` analyzes on one thread: about 5–6 s per full scan on the
+  build machine. `npm run web:local` builds the app and serves it with the
+  cross-origin isolation headers that let WebAssembly use several threads:
+  about 2–3 s per scan.
+- Browser differences: the interactive map is phone-only (the web shows the
+  list), "Save PDF" opens the print dialog (choose "Save as PDF"), email
+  opens your mail app without the PDF attached, and scans and photos are
+  stored in the browser's IndexedDB on your computer.
 
 ### Run on a device
 
@@ -182,7 +209,8 @@ Profiles are defined in [eas.json](eas.json).
 ### Try it without a street full of potholes
 
 Open **Settings → Demo Mode** (or "Try Demo Mode first" at the end of
-onboarding). Six sample photos run through the real on-device analysis. The
+onboarding), on a phone or in the browser. Six sample photos run through
+the real on-device analysis. The
 results are not scripted: the damaged sign and the blocked sidewalk come
 back as "no recognized issue", because the model wasn't trained on them.
 
@@ -233,6 +261,13 @@ flowchart LR
   SCAN -. coordinates only .-> OSM[Nominatim / Overpass]
   SCAN -. coordinates only .-> P311[SeeClickFix / city 311 data]
 ```
+
+On the web, three modules have browser versions picked by the bundler
+(`*.web.ts`): the model runtime (`src/ml/runtime/onDevice.web.ts`, ONNX
+Runtime Web in a Web Worker), image loading (`src/ml/image/loadImage.web.ts`,
+canvas instead of the native resizer) and photo storage
+(`src/storage/imageStore.web.ts`). Everything after the pixels (quality
+gate, crops, classifier, explanations, reports) is the same code.
 
 ```
 src/
@@ -305,8 +340,9 @@ Key decisions:
    can be changed by the user.
 
 Typical analysis time on the build machine's CPU: ~0.4 s per full scan
-(11 crops). Phone timing has not been measured yet; the debug panel shows
-it on a real device.
+(11 crops) with ONNX Runtime for Node, and 2.5–6 s in Chromium with ONNX
+Runtime Web (multi- or single-threaded WebAssembly). Phone timing has not
+been measured yet; the debug panel shows it on a real device.
 
 ## Civic data
 
@@ -391,7 +427,14 @@ Other checks run during development:
 ```bash
 npx expo export --platform android --platform ios   # Metro/Hermes bundles
 npx expo prebuild --no-install                     # native projects + config plugins
+npm run web:local & npm run test:web               # model in a real browser vs Node
 ```
+
+`npm run test:web` runs the six Demo Mode photos through the web build in
+headless Chromium and compares each result with the Node pipeline on the
+same file. All six match: same outcome and category, probabilities within
+0.001 (the browser's canvas resize differs slightly from the Node resize).
+It needs Chromium for Playwright once: `npx playwright install chromium`.
 
 Prebuild caught a config bug that no test would have: an image-picker
 plugin option was removing the Android camera permission.
@@ -417,7 +460,8 @@ analysis on any JPEG.
 
 - **Not yet tested on a phone.** No Android or iOS device or emulator was
   available while building. TypeScript, lint, Jest, the Metro bundles,
-  native project generation and web rendering were verified; native
+  native project generation and the web build (including the model in
+  headless Chromium) were verified; native
   behavior (camera, ONNX Runtime on device, MapLibre, PDF export) still
   needs a device test. Phone analysis speed is unknown.
 - **Live services untested.** The Census, Nominatim, Overpass,
@@ -441,6 +485,10 @@ analysis on any JPEG.
 - **App size.** The 114 MB vision model is bundled in the app, so the
   install is large. Downloading it on first launch would shrink the install
   but break offline-first use, so it was not done.
+- **Browser build.** Civic lookups from a browser depend on each service
+  allowing cross-origin requests, which was not testable here. Browsers
+  may clear site data (including saved scans) under storage pressure or
+  when you clear browsing data.
 - **Department directory covers 15 cities.** Elsewhere you get the
   jurisdiction and a general search link.
 
