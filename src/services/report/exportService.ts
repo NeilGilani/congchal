@@ -4,6 +4,7 @@ import * as MailComposer from 'expo-mail-composer';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import type { Report } from '@/models/report';
 import { readImageBase64 } from '@/storage/imageStore';
@@ -45,14 +46,55 @@ export const createReportPdf = async (report: Report, units: 'imperial' | 'metri
   }
 };
 
+/**
+ * Browsers can't write a PDF file for us. The formatted report is printed
+ * from a hidden frame instead; the print dialog offers "Save as PDF".
+ */
+const printReportInBrowser = async (report: Report, units: 'imperial' | 'metric'): Promise<void> => {
+  const html = renderReportHtml(report, units, await photoDataUri(report.photoUri));
+  await new Promise<void>((resolve, reject) => {
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    frame.onload = () => {
+      try {
+        frame.contentWindow?.focus();
+        frame.contentWindow?.print();
+        resolve();
+      } catch (e) {
+        reject(new ExportError(`The browser could not print the report (${e instanceof Error ? e.message : 'unknown error'}).`));
+      } finally {
+        // print() returns once the dialog closes in most browsers; keep the frame a while for those that don't.
+        setTimeout(() => frame.remove(), 60_000);
+      }
+    };
+    frame.srcdoc = html;
+    document.body.appendChild(frame);
+  });
+};
+
 export const sharePdf = async (report: Report, units: 'imperial' | 'metric'): Promise<void> => {
+  if (Platform.OS === 'web') {
+    // Web Share can't carry a generated PDF; share the report text where the browser supports it.
+    if (typeof navigator === 'undefined' || !navigator.share) {
+      throw new ExportError('Sharing is not available in this browser. Use Save PDF or Copy text instead.');
+    }
+    await navigator.share({ title: emailSubject(report), text: renderReportText(report, units) });
+    await recordExport(report, 'share');
+    return;
+  }
   if (!(await Sharing.isAvailableAsync())) throw new ExportError('Sharing is not available on this device.');
   const pdf = await createReportPdf(report, units);
   await Sharing.shareAsync(pdf, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: 'Share CivicLens report' });
   await recordExport(report, 'share');
 };
 
-export const savePdf = async (report: Report, units: 'imperial' | 'metric'): Promise<string> => {
+export const savePdf = async (report: Report, units: 'imperial' | 'metric'): Promise<string | undefined> => {
+  if (Platform.OS === 'web') {
+    await printReportInBrowser(report, units);
+    await recordExport(report, 'pdf');
+    return undefined;
+  }
   const pdf = await createReportPdf(report, units);
   if (await Sharing.isAvailableAsync()) {
     // On iOS "Save to Files" and on Android "Save" / Drive live in the share sheet.
@@ -67,14 +109,19 @@ export const copyReport = async (report: Report, units: 'imperial' | 'metric'): 
   await recordExport(report, 'copy');
 };
 
-export const emailReport = async (report: Report, units: 'imperial' | 'metric'): Promise<'sent' | 'saved' | 'cancelled' | 'unavailable'> => {
+export type EmailOutcome = 'sent' | 'saved' | 'opened' | 'cancelled' | 'unavailable';
+
+export const emailReport = async (report: Report, units: 'imperial' | 'metric'): Promise<EmailOutcome> => {
   if (!(await MailComposer.isAvailableAsync())) return 'unavailable';
-  const pdf = await createReportPdf(report, units);
+  // A mailto: link (the web composer) can't carry attachments.
+  const attachments = Platform.OS === 'web' ? [] : [await createReportPdf(report, units)];
   const result = await MailComposer.composeAsync({
     subject: emailSubject(report),
     body: renderReportText(report, units),
-    attachments: [pdf],
+    attachments,
   });
+  // The web composer (and some Android mail apps) can't tell whether the email was sent.
+  if (result.status === MailComposer.MailComposerStatus.UNDETERMINED) return 'opened';
   if (result.status === MailComposer.MailComposerStatus.SENT || result.status === MailComposer.MailComposerStatus.SAVED) {
     await recordExport(report, 'email');
   }

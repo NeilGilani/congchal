@@ -67,6 +67,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 
+import { Platform } from 'react-native';
+
 import type { IconName as CategoryIconName } from '@/constants/categories';
 import { colors } from '@/constants/theme';
 
@@ -156,8 +158,18 @@ export interface IconProps {
   strokeWidth?: number;
 }
 
+/**
+ * Hides a decorative graphic from screen readers. On the web the SVG is a DOM
+ * element, which only understands aria-hidden (the native props would leak
+ * into the DOM as unknown attributes).
+ */
+export const decorativeProps =
+  Platform.OS === 'web'
+    ? ({ 'aria-hidden': true } as const)
+    : ({ accessibilityElementsHidden: true, importantForAccessibility: 'no' } as const);
+
 /** Decorative by default: pair icons with text (or give the parent an accessibilityLabel). */
 export const Icon = ({ name, size = 22, color = colors.text, strokeWidth = 1.8 }: IconProps) => {
   const Cmp = ICONS[name];
-  return <Cmp size={size} color={color} strokeWidth={strokeWidth} accessibilityElementsHidden importantForAccessibility="no" />;
+  return <Cmp size={size} color={color} strokeWidth={strokeWidth} {...decorativeProps} />;
 };

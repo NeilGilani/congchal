@@ -121,7 +121,7 @@ export const SettingsScreen = () => {
           title="What leaves your device"
           body={
             settings.localOnlyMode
-              ? 'Nothing, except map tiles when you open the map. Analysis runs on your phone.'
+              ? 'Nothing, except map tiles when you open the map. Analysis runs on your device.'
               : 'Photos never leave your device unless you share a report (or enable cloud analysis). Coordinates are sent to public civic data services only for lookups you can turn off above.'
           }
         />

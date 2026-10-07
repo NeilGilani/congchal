@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 
 import { DemoBadge } from '@/components/Badges';
 import { Button } from '@/components/Button';
@@ -60,7 +60,10 @@ export const ReviewScreen = ({ reportId }: { reportId: string }) => {
           break;
         case 'pdf':
           await savePdf(report, units);
-          setNotice({ tone: 'positive', text: 'PDF created. Choose where to save it.' });
+          setNotice({
+            tone: 'positive',
+            text: Platform.OS === 'web' ? 'Choose "Save as PDF" in the print dialog.' : 'PDF created. Choose where to save it.',
+          });
           break;
         case 'copy':
           await copyReport(report, units);
@@ -71,7 +74,15 @@ export const ReviewScreen = ({ reportId }: { reportId: string }) => {
           setNotice(
             r === 'unavailable'
               ? { tone: 'caution', text: 'No email app is set up on this device. Use Share instead.' }
-              : r === 'cancelled'
+              : r === 'opened'
+                ? {
+                    tone: 'positive',
+                    text:
+                      Platform.OS === 'web'
+                        ? 'Your email app opened with the report text. Attach the PDF yourself if you saved one.'
+                        : 'Your email app opened with the report.',
+                  }
+                : r === 'cancelled'
                 ? { tone: 'caution', text: 'Email cancelled.' }
                 : { tone: 'positive', text: r === 'sent' ? 'Email sent from your mail app.' : 'Email saved as a draft.' },
           );

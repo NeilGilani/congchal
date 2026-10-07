@@ -135,7 +135,7 @@ export const AboutScreen = () => {
             <Step
               n={2}
               title="On-device vision model"
-              body={`${head.def.modelName}. The image encoder runs on your phone with ONNX Runtime; the photo is not uploaded.`}
+              body={`${head.def.modelName}. The image encoder runs on your device with ONNX Runtime (in your browser on the web); the photo is not uploaded.`}
             />
             <Step n={3} title="Several views" body="The whole photo plus crops are analyzed, so a small pothole in a big street scene is not missed." />
             <Step n={4} title="Calibrated confidence" body="Scores were calibrated on held-out photos. Below the threshold, CivicLens says it isn't sure." />

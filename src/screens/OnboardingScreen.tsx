@@ -34,10 +34,10 @@ const STEPS: Step[] = [
   {
     eyebrow: 'SEE IT',
     title: 'Point your camera at a problem',
-    body: 'CivicLens looks at the scene on your phone and tells you what it thinks it sees, and how sure it is.',
+    body: 'CivicLens looks at what your camera sees and tells you what it thinks it sees, and how sure it is.',
     points: [
       { icon: 'camera', text: `It is trained on: ${detectable()}.` },
-      { icon: 'phoneDevice', text: 'Analysis runs on your phone. Photos are not uploaded.' },
+      { icon: 'phoneDevice', text: 'Analysis runs on your device. Photos are not uploaded.' },
       { icon: 'help', text: 'When it isn’t sure, it says so instead of guessing.' },
     ],
   },
@@ -131,7 +131,7 @@ export const OnboardingScreen = () => {
                     <View style={styles.flex}>
                       <T variant="bodyMedium">Camera</T>
                       <T variant="callout" tone="secondary">
-                        To see the problem. Frames are analyzed on your phone and are not saved unless you tap Scan.
+                        To see the problem. Frames are analyzed on your device and are not saved unless you tap Scan.
                       </T>
                     </View>
                   </View>

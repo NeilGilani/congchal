@@ -59,7 +59,9 @@ export const renderReportHtml = (r: Report, units: 'imperial' | 'metric', photoD
     .join('');
   const demo = r.isDemo ? '<div class="demo">DEMO MODE · Sample data, not a real observation</div>' : '';
   const photo = photoDataUri ? `<img class="photo" src="${photoDataUri}" alt="Evidence photo" />` : '<p class="muted">Photo unavailable.</p>';
-  return `<!doctype html><html><head><meta charset="utf-8" />
+  // The title becomes the default file name when a browser saves the page as a PDF.
+  const title = `CivicLens report - ${CATEGORY_INFO[r.category].label} - ${r.createdAt.slice(0, 10)}`;
+  return `<!doctype html><html><head><meta charset="utf-8" /><title>${escapeHtml(title)}</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif; color: #111; margin: 0; padding: 28px; }

@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Redirect, router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, tapFeedback } from '@/components/Button';
@@ -168,8 +168,8 @@ export const CameraScreen = () => {
             CivicLens needs your camera
           </T>
           <T variant="body" tone="secondary" align="center">
-            Point your phone at a pothole, graffiti, or other problem and CivicLens analyzes it on your device. Photos stay on
-            your phone unless you choose to share a report.
+            Point your camera at a pothole, graffiti, or other problem and CivicLens analyzes it on your device. Photos stay on
+            your device unless you choose to share a report.
           </T>
         </View>
         <View style={styles.gateActions}>
@@ -180,7 +180,7 @@ export const CameraScreen = () => {
           )}
           {blocked ? (
             <T variant="caption" tone="tertiary" align="center">
-              Camera access was turned off for CivicLens. Enable it in your phone’s settings.
+              Camera access was turned off for CivicLens. Enable it in your {Platform.OS === 'web' ? 'browser’s site settings' : 'phone’s settings'}.
             </T>
           ) : null}
           <Button label="Analyze a photo instead" icon="gallery" variant="secondary" onPress={() => void runScan('gallery')} />

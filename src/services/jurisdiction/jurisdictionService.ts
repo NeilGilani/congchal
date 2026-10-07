@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 
 import { describeNetworkError } from '@/api/http';
 import type { Address, Jurisdiction } from '@/models/location';
@@ -28,6 +29,8 @@ export interface ResolvedPlace {
 }
 
 const fromDeviceGeocoder = async (point: LatLng): Promise<Address | undefined> => {
+  // Browsers have no device geocoder (expo-location only warns there); Nominatim covers the web.
+  if (Platform.OS === 'web') return undefined;
   try {
     const results = await Location.reverseGeocodeAsync(point);
     const r = results[0];

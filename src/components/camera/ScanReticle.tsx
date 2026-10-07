@@ -90,9 +90,6 @@ const styles = StyleSheet.create({
     right: 8,
     height: 2,
     backgroundColor: colors.accent,
-    shadowColor: colors.accent,
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
+    boxShadow: '0px 0px 8px rgba(110, 168, 254, 0.9)',
   },
 });
