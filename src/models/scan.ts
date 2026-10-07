@@ -52,6 +52,8 @@ export interface Scan {
   /** Enrichment that still needs network access. */
   pendingLookups: ('address' | 'jurisdiction' | 'civic')[];
   isDemo: boolean;
+  /** Which bundled sample photo a Demo Mode scan came from. */
+  demoScenarioId?: string;
   /** Free-text note from the user. */
   note?: string;
 }

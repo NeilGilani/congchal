@@ -72,12 +72,12 @@ export const deleteScan = async (scan: Scan): Promise<void> => {
   const reports = (await reportsFor(scan.isDemo).list()).filter((r) => r.scanId === scan.id);
   for (const r of reports) await reportsFor(scan.isDemo).remove(r.id);
   await scansFor(scan.isDemo).remove(scan.id);
-  if (!scan.isDemo) deleteScanImage(scan.imageUri);
+  deleteScanImage(scan.imageUri);
 };
 
 export const clearAllHistory = async (): Promise<void> => {
   const repos = getRepositories();
-  for (const s of await repos.scans.list()) deleteScanImage(s.imageUri);
+  for (const s of [...(await repos.scans.list()), ...(await repos.demoScans.list())]) deleteScanImage(s.imageUri);
   await repos.reports.clear();
   await repos.scans.clear();
   await repos.demoReports.clear();
