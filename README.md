@@ -12,15 +12,16 @@ yourself.
 Built with Expo (React Native, TypeScript) for the Congressional App
 Challenge.
 
-> **Status, honestly.** The app and its analysis code were written and
-> tested in a Linux build environment without an Android or iOS device or
-> emulator. The vision model, the analysis pipeline, the report logic and
-> the data parsers are covered by automated tests, and the model's accuracy
-> was measured on 960 held-out photos through the exact TypeScript code the
-> app runs. **The app has not yet been run on a physical phone**, and the
-> live civic data services (Census, OpenStreetMap, SeeClickFix, city 311
-> portals) could not be reached from the build environment. See
-> [Limitations](#limitations).
+> **Status, honestly.** The app was built in a Linux environment without
+> an Android or iOS device or emulator. What was verified there: 344
+> automated tests (including the real model running end to end), strict
+> TypeScript, lint, Metro bundles for Android and iOS, native project
+> generation for both platforms, and the screens rendered in a headless
+> browser. The model's accuracy was measured on 960 held-out photos through
+> the exact TypeScript code the app runs. **The app has not yet been run on
+> a physical phone**, and the live civic data services (Census,
+> OpenStreetMap, SeeClickFix, city 311 portals) could not be reached from
+> the build environment. See [Limitations](#limitations).
 
 ---
 
@@ -365,13 +366,35 @@ npm run evaluate -- --dataset tools/ml/dataset/dataset.json \
   --data-root <images> --out docs/eval/results.json --robustness 25
 ```
 
-The integration tests load the real 114 MB model with ONNX Runtime for
-Node and run bundled photos through the full pipeline (camera photo →
-analysis → scan → report). The unit tests cover the quality gate, temporal
-fusion, the classifier head, severity, explanations, Census and Nominatim
-parsing, department matching, duplicate scoring, report validation and
-formatting (including HTML escaping), the HTTP client's error handling,
-storage, EXIF location, and impact stats.
+344 tests in 21 suites, all passing.
+
+- **Integration (12):** load the real 114 MB model with ONNX Runtime for
+  Node and run the bundled photos through the full pipeline: detections,
+  "no issue" for an unsupported category, quality rejection of dark and
+  blurred photos, evidence and severity, then scan → draft report →
+  checklist → exported text.
+- **Unit (332):** quality gate, temporal fusion, classifier head (including
+  the shipped head file), severity, Census and Nominatim parsing, road
+  context, department matching, 311 category mapping, duplicate scoring,
+  map filtering, report validation and formatting (including HTML
+  escaping), the HTTP client's error kinds (invalid response, offline,
+  rate limit, server error, timeout, cancel), SeeClickFix and Socrata
+  parsing, storage, EXIF location, geo math, impact stats and the field
+  evaluation tool.
+
+Writing these tests found six bugs, each fixed with a regression test (for
+example, "Street Light Out" reports were being mapped to "fallen tree"
+because `/tree/` matched inside "Street").
+
+Other checks run during development:
+
+```bash
+npx expo export --platform android --platform ios   # Metro/Hermes bundles
+npx expo prebuild --no-install                     # native projects + config plugins
+```
+
+Prebuild caught a config bug that no test would have: an image-picker
+plugin option was removing the Android camera permission.
 
 Reproducing the model and dataset is described in
 [tools/ml/README.md](tools/ml/README.md).
@@ -393,9 +416,10 @@ analysis on any JPEG.
 ## Limitations
 
 - **Not yet tested on a phone.** No Android or iOS device or emulator was
-  available while building. TypeScript, lint, Jest and the Metro bundle
-  were verified; native behavior (camera, ONNX Runtime on device, MapLibre,
-  PDF export) still needs a device test. Phone analysis speed is unknown.
+  available while building. TypeScript, lint, Jest, the Metro bundles,
+  native project generation and web rendering were verified; native
+  behavior (camera, ONNX Runtime on device, MapLibre, PDF export) still
+  needs a device test. Phone analysis speed is unknown.
 - **Live services untested.** The Census, Nominatim, Overpass,
   SeeClickFix, Socrata and OpenFreeMap requests and parsers are written
   against the documented formats and tested with fixtures, but the
