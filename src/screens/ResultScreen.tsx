@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 
 import { DemoBadge, SeverityBadge } from '@/components/Badges';
 import { Button } from '@/components/Button';
@@ -18,15 +18,31 @@ import { colors, space } from '@/constants/theme';
 import { useScan, useSettings } from '@/hooks/useStore';
 import type { DuplicateCandidate } from '@/models/civic';
 import { ISSUE_CATEGORIES, type IssueCategory } from '@/models/issue';
+import type { Scan } from '@/models/scan';
 import { getHead } from '@/services/detection/detectionService';
 import { applyDuplicateDecision, confirmAndDraftReport } from '@/services/scan/scanActions';
-import { formatPercent } from '@/utils/format';
+import { CONFIDENCE_LABEL, formatPercent } from '@/utils/format';
 
 const supportedList = (): string =>
   getHead()
     .classes.filter((c) => c !== 'none')
     .map((c) => categoryLabel(c).toLowerCase())
     .join(', ');
+
+/** One sentence for screen readers (iOS has no live regions). */
+const resultAnnouncement = (scan: Scan): string => {
+  const det = scan.detections[0];
+  switch (scan.analysis.outcome) {
+    case 'detected':
+      return det ? `${CATEGORY_INFO[det.category].label} detected, ${CONFIDENCE_LABEL[det.confidenceLevel].toLowerCase()}.` : 'Issue detected.';
+    case 'uncertain':
+      return 'CivicLens is not sure what this is. You can choose the issue type.';
+    case 'rejected_quality':
+      return scan.quality.issues.find((i) => i.level === 'blocking')?.message ?? 'The photo could not be analyzed.';
+    default:
+      return 'No recognized issue in this photo.';
+  }
+};
 
 export const ResultScreen = ({ scanId }: { scanId: string }) => {
   const { scan, loading } = useScan(scanId);
@@ -39,6 +55,7 @@ export const ResultScreen = ({ scanId }: { scanId: string }) => {
   useEffect(() => {
     if (!scan || announced.current || Platform.OS === 'web') return;
     announced.current = true;
+    AccessibilityInfo.announceForAccessibility(resultAnnouncement(scan));
     if (scan.analysis.outcome === 'detected') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     if (scan.analysis.outcome === 'rejected_quality') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
   }, [scan]);
