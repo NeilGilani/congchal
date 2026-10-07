@@ -1,10 +1,11 @@
-export type BackendKind = 'on-device' | 'remote' | 'node';
+export type BackendKind = 'on-device' | 'browser' | 'remote' | 'node';
 
 /**
  * Something that turns a batch of 256x256 RGB crops into SigLIP 2 image
  * embeddings. Implementations: ONNX Runtime on device (React Native), ONNX
- * Runtime in Node (tests, evaluation, the optional inference server) and an
- * HTTP client for the remote server.
+ * Runtime Web in the browser (WebAssembly), ONNX Runtime in Node (tests,
+ * evaluation, the optional inference server) and an HTTP client for the
+ * remote server.
  */
 export interface EmbeddingBackend {
   readonly kind: BackendKind;

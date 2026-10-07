@@ -56,3 +56,6 @@ tools/ml/.venv/
 tools/ml/work/
 *.pyc
 __pycache__/
+
+# ONNX Runtime Web files, copied from node_modules on install (scripts/copy-ort-web.js)
+public/ort/

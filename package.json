@@ -37,6 +37,7 @@
     "jpeg-js": "^0.4.4",
     "lucide-react-native": "^1.52.0",
     "onnxruntime-react-native": "1.24.3",
+    "onnxruntime-web": "1.30.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -62,6 +63,7 @@
     "jest-expo": "~57.0.5",
     "onnxruntime-node": "^1.30.0",
     "patch-package": "^8.0.1",
+    "playwright": "^1.56.1",
     "test-renderer": "^1.3.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
@@ -72,11 +74,13 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "postinstall": "patch-package && node scripts/assemble-model.js",
+    "postinstall": "patch-package && node scripts/assemble-model.js && node scripts/copy-ort-web.js",
     "test": "jest",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "evaluate": "tsx tools/ml/evaluate.ts",
-    "server": "tsx server/inference-server.ts"
+    "server": "tsx server/inference-server.ts",
+    "web:local": "expo export --platform web && node scripts/serve-web.js dist",
+    "test:web": "node scripts/web-smoke-test.js"
   },
   "private": true
 }

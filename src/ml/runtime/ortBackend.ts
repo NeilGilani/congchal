@@ -10,7 +10,7 @@ const OUTPUT_NAME = 'embedding';
 
 /** The subset of an ONNX Runtime package (node / react-native / web) we need. */
 export interface OrtModule {
-  InferenceSession: { create(path: string, options?: InferenceSession.SessionOptions): Promise<InferenceSession> };
+  InferenceSession: { create(model: string | Uint8Array, options?: InferenceSession.SessionOptions): Promise<InferenceSession> };
   Tensor: new (type: 'float32', data: Float32Array, dims: readonly number[]) => TypedTensor<'float32'>;
 }
 
@@ -21,7 +21,7 @@ export interface OrtModule {
  */
 export const createOrtEmbeddingBackend = async (
   ort: OrtModule,
-  modelPath: string,
+  modelPath: string | Uint8Array,
   kind: BackendKind,
   options: InferenceSession.SessionOptions = {},
 ): Promise<EmbeddingBackend> => {

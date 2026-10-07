@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /** Minimal async key-value interface (AsyncStorage on device, in-memory in tests). */
 export interface KeyValueStore {
   getItem(key: string): Promise<string | null>;
@@ -23,12 +25,20 @@ export const createMemoryStore = (): KeyValueStore & { dump(): Record<string, st
 
 let defaultStore: KeyValueStore | undefined;
 
-/** Lazily binds AsyncStorage so pure-logic modules stay testable in Node. */
+/**
+ * Lazily binds AsyncStorage so pure-logic modules stay testable in Node. In
+ * a browser, IndexedDB is used instead (AsyncStorage's localStorage is too
+ * small for records that carry photos).
+ */
 export const getDefaultStore = (): KeyValueStore => {
   if (!defaultStore) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default as KeyValueStore;
-    defaultStore = AsyncStorage;
+    if (Platform.OS === 'web' && typeof indexedDB !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      defaultStore = (require('./indexedDbStore') as typeof import('./indexedDbStore')).createIndexedDbStore();
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      defaultStore = require('@react-native-async-storage/async-storage').default as KeyValueStore;
+    }
   }
   return defaultStore;
 };

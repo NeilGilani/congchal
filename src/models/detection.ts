@@ -25,7 +25,7 @@ export interface ModelInfo {
   modelName: string;
   modelVersion: string;
   headVersion: string;
-  backend: 'on-device' | 'remote' | 'node';
+  backend: 'on-device' | 'browser' | 'remote' | 'node';
 }
 
 export interface SeverityFactor {
