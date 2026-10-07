@@ -3,11 +3,14 @@
 Embeddings come from the app's own TypeScript pipeline (tools/ml/embed.ts),
 so the head sees exactly what the phone produces.
 
-Experiments (all evaluated on the held-out grouped test split):
+Experiments, compared on a grouped validation subset of the training split:
   zs     - zero-shot: cosine to prompt-ensemble text embeddings
   probe  - multinomial logistic regression (class-balanced)
   prior  - logistic regression regularised toward the zero-shot weights
            (keeps text knowledge for classes with little data)
+
+The variant with the best validation macro-F1 is selected. The test split is
+not used for any choice; --report-test prints its scores for the record only.
 
 Usage:
   python train_head.py --dataset dataset.json --emb emb_all_live emb_norm2_live \
@@ -126,6 +129,7 @@ def main() -> None:
     ap.add_argument("--classes", required=True, help="comma-separated issue classes (none is added)")
     ap.add_argument("--out", default="")
     ap.add_argument("--lam", type=float, default=0.05)
+    ap.add_argument("--report-test", action="store_true", help="also print test-split scores (never used for selection)")
     ap.add_argument(
         "--unsupported-as-none",
         action="store_true",
@@ -160,8 +164,6 @@ def main() -> None:
     W0 = (T * scale).astype(np.float32)
     b0 = np.zeros(len(classes), np.float32)
 
-    results = {}
-    results["zero_shot"] = report("zero-shot", softmax(Xte @ W0.T), yte, classes)
 
     counts = np.bincount(ytr, minlength=len(classes)).astype(np.float32)
     cw = (counts.sum() / (len(classes) * np.maximum(counts, 1))) ** 0.5
@@ -175,21 +177,26 @@ def main() -> None:
     Xva = feats(va, 0)
     yva = np.array([cidx[r["label"]] for r in va])
 
+    results = {"zero_shot": {"validation": report("zero-shot / validation", softmax(Xva @ W0.T), yva, classes)}}
+    if args.report_test:
+        results["zero_shot"]["test"] = report("zero-shot / test (not used for selection)", softmax(Xte @ W0.T), yte, classes)
+
     best = None
     for name, lam in (("probe", 0.0), ("prior", args.lam), ("prior_light", args.lam / 5)):
         W, b = train_linear(Xtr[tr_mask], ytr[tr_mask], len(classes), W0=W0 if lam else None, b0=b0 if lam else None,
                             lam_prior=lam, class_weight=cw)
         t = fit_temperature(Xva @ W.T + b, yva)
+        vres = report(f"{name} / validation (T={t:.2f})", softmax((Xva @ W.T + b) / t), yva, classes)
         # Refit on all training data with the chosen setup.
         W, b = train_linear(Xtr, ytr, len(classes), W0=W0 if lam else None, b0=b0 if lam else None, lam_prior=lam,
                             class_weight=cw)
-        res = report(f"{name} (T={t:.2f})", softmax((Xte @ W.T + b) / t), yte, classes)
-        Xte_c = feats(te, 1)
-        report(f"{name} full+centre mean logits", softmax(((Xte @ W.T + b) + (Xte_c @ W.T + b)) / 2 / t), yte, classes)
-        res["temperature"] = t
+        res = {"validation": vres, "temperature": t, "lambda": lam}
+        if args.report_test:
+            res["test"] = report(f"{name} / test (not used for selection)", softmax((Xte @ W.T + b) / t), yte, classes)
         results[name] = res
-        if best is None or res["macro_f1"] > best[0]:
-            best = (res["macro_f1"], name, W, b, t)
+        if best is None or vres["macro_f1"] > best[0]:
+            best = (vres["macro_f1"], name, W, b, t)
+    print(f"\nselected on validation macro-F1: {best[1]} ({best[0]:.3f})")
 
     if args.out:
         _, name, W, b, t = best

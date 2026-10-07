@@ -1,4 +1,4 @@
-"""Exports the SigLIP 2 image tower to ONNX (fp32 + int8 dynamic-quantised).
+"""Exports the SigLIP 2 image tower to ONNX (fp32, plus 8-bit weight-only MatMulNBits).
 
 The exported graph takes `pixels`: float32 [N, 3, 256, 256] with values in
 [0, 255] (RGB) and returns `embedding`: float32 [N, 768], L2-normalised.
@@ -77,8 +77,10 @@ def main() -> None:
     # 0.72-0.87 vs fp32 on real photos), while 8-bit weight-only is lossless in
     # practice (cosine > 0.999) and shrinks the file from 378 MB to ~113 MB.
     # accuracy_level=4 lets ONNX Runtime run the matmuls with int8 compute on
-    # per-block (32-value) quantised activations: ~3x faster than float compute
-    # on CPU while measured cosine vs fp32 stays at 0.999+.
+    # per-block (32-value) quantised activations; measured cosine vs fp32 stays
+    # at 0.998+. The main gain is size. Speed vs fp32 depends on the CPU: one
+    # build-machine run measured 36 vs 109 ms per image, a later one 39 vs 41 ms
+    # (docs/eval/quantization.json). Phone speed has not been measured.
     model_proto = onnx.load(fp32_path)
     quantizer = MatMulNBitsQuantizer(
         model_proto, bits=8, block_size=32, is_symmetric=True, accuracy_level=4

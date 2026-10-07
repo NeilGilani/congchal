@@ -1,0 +1,16 @@
+{
+  "images": 64,
+  "cosine_q8_vs_fp32": {
+    "min": 0.9983335733413696,
+    "mean": 0.9994628429412842
+  },
+  "bytes": {
+    "fp32": 378393432,
+    "q8": 113870856
+  },
+  "latency_ms_batch1_host_cpu_4_threads": {
+    "fp32": 41.4,
+    "q8": 39.2
+  },
+  "note": "Host CPU timings from the build machine, not a phone."
+}

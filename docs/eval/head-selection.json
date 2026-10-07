@@ -1,0 +1,35 @@
+{
+  "selectedVariant": "prior_light",
+  "selectionMetric": "validation macro-F1 (argmax over 7 classes, incl. none)",
+  "variants": {
+    "zero_shot": {
+      "lambda": null,
+      "temperature": null,
+      "validationAccuracy": 0.7344,
+      "validationMacroF1": 0.64183,
+      "validationECE": 0.0446
+    },
+    "probe": {
+      "lambda": 0.0,
+      "temperature": 0.4382323680031972,
+      "validationAccuracy": 0.9444,
+      "validationMacroF1": 0.86587,
+      "validationECE": 0.0226
+    },
+    "prior": {
+      "lambda": 0.05,
+      "temperature": 0.7527527524240137,
+      "validationAccuracy": 0.9549,
+      "validationMacroF1": 0.88451,
+      "validationECE": 0.0117
+    },
+    "prior_light": {
+      "lambda": 0.01,
+      "temperature": 0.6940810176396752,
+      "validationAccuracy": 0.9566,
+      "validationMacroF1": 0.88519,
+      "validationECE": 0.0122
+    }
+  },
+  "note": "Produced by tools/ml/train_head.py, which no longer reads test-split scores for selection. build_head.py then trains the selected variant (lambda = 0.01) for the app."
+}

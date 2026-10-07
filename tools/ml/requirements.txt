@@ -1,0 +1,12 @@
+# Python tooling for model conversion, dataset building and head training.
+# Versions used to produce the committed model and head (Python 3.13).
+torch==2.14.1
+numpy==2.5.3
+onnx==1.23.2
+onnxruntime==1.30.0
+pillow==12.3.0
+sentencepiece==0.2.2
+# Only for verify_parity.py (reference JAX implementation via big_vision):
+jax==0.11.2
+flax==0.12.10
+ml_collections==1.1.0

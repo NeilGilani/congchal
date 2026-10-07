@@ -5,7 +5,10 @@
  *
  * Usage:
  *   npx tsx tools/ml/evaluate.ts --dataset dataset.json --data-root DATA \
- *       --out docs/eval/results.json [--limit N] [--robustness 30]
+ *       --out docs/eval/results.json [--limit N] [--robustness 25] [--robustness-only]
+ *
+ * --robustness-only keeps the saved test-split results and recomputes only
+ * the synthetic-degradation section.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -156,79 +159,86 @@ const main = async (): Promise<void> => {
 
   let test = dataset.records.filter((r) => r.split === 'test');
   if (limit) test = test.slice(0, limit);
+  // Rows of the full test-split pass (empty with --robustness-only, which reuses the saved results).
   const rows: Row[] = [];
-  let i = 0;
-  for (const r of test) {
-    const label = supported.has(r.label as never) ? r.label : 'none';
-    // Same resolution the app analyses (the phone's native resizer → 512 px long side).
-    const img = limitLongSide(decodeJpeg(new Uint8Array(fs.readFileSync(imagePath(root, r.id)))), ANALYSIS_LONG_SIDE);
-    const a = await analyzeImage(img, { backend, head, mode: 'scan' });
-    const predicted = a.outcome === 'detected' && a.top ? a.top.category : 'none';
-    let boxHitsGt: boolean | undefined;
-    if (r.label === 'pothole' && predicted === 'pothole') {
-      const gts = potholeBoxes(root, r.id);
-      if (gts.length && a.top?.region) boxHitsGt = gts.some((g) => a.top?.region && rectIntersection(a.top.region, g));
-    }
-    rows.push({
-      id: r.id,
-      label,
-      outcome: a.outcome,
-      predicted,
-      probability: a.top?.probability ?? 0,
-      level: a.top?.level,
-      hasBox: Boolean(a.top?.region),
-      boxHitsGt,
-      ms: a.timings.totalMs,
-    });
-    if (++i % 100 === 0) console.log(`${i}/${test.length}`);
-  }
-
   const classes = head.classes.filter((c) => c !== 'none');
-  const perClass: Record<string, unknown> = {};
-  for (const c of classes) {
-    const tp = rows.filter((x) => x.predicted === c && x.label === c).length;
-    const fp = rows.filter((x) => x.predicted === c && x.label !== c).length;
-    const fn = rows.filter((x) => x.predicted !== c && x.label === c).length;
-    const uncertainHits = rows.filter((x) => x.label === c && x.outcome === 'uncertain').length;
-    perClass[c] = {
-      support: tp + fn,
-      tp,
-      fp,
-      fn,
-      precision: tp + fp ? tp / (tp + fp) : null,
-      precisionCi95: wilson(tp, tp + fp),
-      recall: tp + fn ? tp / (tp + fn) : null,
-      recallCi95: wilson(tp, tp + fn),
-      flaggedUncertainInstead: uncertainHits,
-    };
-  }
-  const none = rows.filter((x) => x.label === 'none');
-  const falseAlarms = none.filter((x) => x.outcome === 'detected').length;
-  const byLevel = (lvl: string) => {
-    const d = rows.filter((x) => x.outcome === 'detected' && x.level === lvl);
-    const ok = d.filter((x) => x.predicted === x.label).length;
-    return { detections: d.length, correct: ok, precision: d.length ? ok / d.length : null, ci95: wilson(ok, d.length) };
-  };
-  const pot = rows.filter((x) => x.boxHitsGt !== undefined);
-  const lat = rows.map((x) => x.ms).sort((a, b) => a - b);
+  const evaluateSplit = async (): Promise<Record<string, unknown>> => {
+    let i = 0;
+    for (const r of test) {
+      const label = supported.has(r.label as never) ? r.label : 'none';
+      // Same resolution the app analyses (the phone's native resizer → 512 px long side).
+      const img = limitLongSide(decodeJpeg(new Uint8Array(fs.readFileSync(imagePath(root, r.id)))), ANALYSIS_LONG_SIDE);
+      const a = await analyzeImage(img, { backend, head, mode: 'scan' });
+      const predicted = a.outcome === 'detected' && a.top ? a.top.category : 'none';
+      let boxHitsGt: boolean | undefined;
+      if (r.label === 'pothole' && predicted === 'pothole') {
+        const gts = potholeBoxes(root, r.id);
+        if (gts.length && a.top?.region) boxHitsGt = gts.some((g) => a.top?.region && rectIntersection(a.top.region, g));
+      }
+      rows.push({
+        id: r.id,
+        label,
+        outcome: a.outcome,
+        predicted,
+        probability: a.top?.probability ?? 0,
+        level: a.top?.level,
+        hasBox: Boolean(a.top?.region),
+        boxHitsGt,
+        ms: a.timings.totalMs,
+      });
+      if (++i % 100 === 0) console.log(`${i}/${test.length}`);
+    }
 
-  const results: Record<string, unknown> = {
-    evaluatedAt: new Date().toISOString(),
-    head: { version: head.def.version, thresholds: head.def.thresholds },
-    images: rows.length,
-    qualityRejected: rows.filter((x) => x.outcome === 'rejected_quality').length,
-    perClass,
-    noIssueImages: none.length,
-    falseAlarmRate: none.length ? falseAlarms / none.length : null,
-    falseAlarmRateCi95: wilson(falseAlarms, none.length),
-    noIssueFlaggedUncertain: none.filter((x) => x.outcome === 'uncertain').length,
-    confidenceLevels: { high: byLevel('high'), moderate: byLevel('moderate') },
-    potholeLocalization: {
-      detectedWithBoxAndGt: pot.length,
-      boxOverlapsAnnotatedPothole: pot.filter((x) => x.boxHitsGt).length,
-    },
-    hostLatencyMs: { p50: lat[Math.floor(lat.length * 0.5)], p90: lat[Math.floor(lat.length * 0.9)] },
+    const perClass: Record<string, unknown> = {};
+    for (const c of classes) {
+      const tp = rows.filter((x) => x.predicted === c && x.label === c).length;
+      const fp = rows.filter((x) => x.predicted === c && x.label !== c).length;
+      const fn = rows.filter((x) => x.predicted !== c && x.label === c).length;
+      const uncertainHits = rows.filter((x) => x.label === c && x.outcome === 'uncertain').length;
+      perClass[c] = {
+        support: tp + fn,
+        tp,
+        fp,
+        fn,
+        precision: tp + fp ? tp / (tp + fp) : null,
+        precisionCi95: wilson(tp, tp + fp),
+        recall: tp + fn ? tp / (tp + fn) : null,
+        recallCi95: wilson(tp, tp + fn),
+        flaggedUncertainInstead: uncertainHits,
+      };
+    }
+    const none = rows.filter((x) => x.label === 'none');
+    const falseAlarms = none.filter((x) => x.outcome === 'detected').length;
+    const byLevel = (lvl: string) => {
+      const d = rows.filter((x) => x.outcome === 'detected' && x.level === lvl);
+      const ok = d.filter((x) => x.predicted === x.label).length;
+      return { detections: d.length, correct: ok, precision: d.length ? ok / d.length : null, ci95: wilson(ok, d.length) };
+    };
+    const pot = rows.filter((x) => x.boxHitsGt !== undefined);
+    const lat = rows.map((x) => x.ms).sort((a, b) => a - b);
+
+    return {
+      evaluatedAt: new Date().toISOString(),
+      head: { version: head.def.version, thresholds: head.def.thresholds },
+      images: rows.length,
+      qualityRejected: rows.filter((x) => x.outcome === 'rejected_quality').length,
+      perClass,
+      noIssueImages: none.length,
+      falseAlarmRate: none.length ? falseAlarms / none.length : null,
+      falseAlarmRateCi95: wilson(falseAlarms, none.length),
+      noIssueFlaggedUncertain: none.filter((x) => x.outcome === 'uncertain').length,
+      confidenceLevels: { high: byLevel('high'), moderate: byLevel('moderate') },
+      potholeLocalization: {
+        detectedWithBoxAndGt: pot.length,
+        boxOverlapsAnnotatedPothole: pot.filter((x) => x.boxHitsGt).length,
+      },
+      hostLatencyMs: { p50: lat[Math.floor(lat.length * 0.5)], p90: lat[Math.floor(lat.length * 0.9)] },
+    };
   };
+  const robustnessOnly = process.argv.includes('--robustness-only');
+  const results: Record<string, unknown> = robustnessOnly
+    ? (JSON.parse(fs.readFileSync(arg('out'), 'utf8')) as Record<string, unknown>)
+    : await evaluateSplit();
 
   // Robustness: real test photos with controlled degradations.
   if (robustnessPerClass > 0) {
@@ -238,8 +248,11 @@ const main = async (): Promise<void> => {
     }
     const variants: Record<string, (img: RgbImage) => RgbImage> = {
       original: (x) => x,
+      // Exposure: brightness factor and gamma (>1 crushes shadows like a phone sensor in low light).
       evening: (x) => darken(x, 0.45, 1.6),
       night: (x) => darken(x, 0.15, 2.2),
+      // Box blur radius in pixels at the 512 px analysis size (2 ≈ slight hand shake, 6 ≈ badly out of focus).
+      blur_mild: (x) => boxBlur(x, 2),
       blur: (x) => boxBlur(x, 6),
       occluded: occlude,
       farther,
@@ -278,7 +291,7 @@ const main = async (): Promise<void> => {
 
   fs.mkdirSync(path.dirname(arg('out')), { recursive: true });
   fs.writeFileSync(arg('out'), JSON.stringify(results, null, 2));
-  fs.writeFileSync(arg('out').replace(/\.json$/, '.rows.json'), JSON.stringify(rows));
+  if (!robustnessOnly) fs.writeFileSync(arg('out').replace(/\.json$/, '.rows.json'), JSON.stringify(rows));
   console.log(JSON.stringify(results, null, 2));
   await backend.dispose();
 };

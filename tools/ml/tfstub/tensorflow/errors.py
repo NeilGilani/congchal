@@ -1,0 +1,2 @@
+NotFoundError = FileNotFoundError
+OpError = Exception

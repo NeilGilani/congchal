@@ -1,0 +1,11 @@
+# JAX (big_vision reference) vs PyTorch port of SigLIP 2 B/32 @256: tools/ml/verify_parity.py on assets/demo/pothole.jpg and graffiti.jpg.
+image max |diff|: 4.2747706e-07
+text  max |diff|: 1.1920929e-07
+t/b ref: [111.83257] [-16.766876] ours: 111.83257293701172 -16.766876220703125
+logits ref:
+ [[  1.924 -15.453 -14.098  -8.554]
+ [-15.973  -1.57  -11.91  -13.682]]
+logits ours:
+ [[  1.924 -15.453 -14.098  -8.554]
+ [-15.973  -1.57  -11.91  -13.682]]
+PARITY OK

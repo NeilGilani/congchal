@@ -29,7 +29,7 @@ if (fs.existsSync(target) && fs.statSync(target).size === manifest.bytes && sha2
 
 const missing = manifest.parts.filter((p) => !fs.existsSync(path.join(dir, p)));
 if (missing.length > 0) {
-  console.error(`[civiclens] Missing model parts: ${missing.join(', ')}. See README "Model setup".`);
+  console.error(`[civiclens] Missing model parts: ${missing.join(', ')}. See tools/ml/README.md.`);
   process.exit(1);
 }
 

@@ -1,0 +1,196 @@
+{
+  "evaluatedAt": "2026-10-07T02:39:27.627Z",
+  "head": {
+    "version": "1.0.0",
+    "thresholds": {
+      "detect": 0.55,
+      "high": 0.9,
+      "uncertain": 0.35
+    }
+  },
+  "images": 960,
+  "qualityRejected": 10,
+  "perClass": {
+    "pothole": {
+      "support": 311,
+      "tp": 285,
+      "fp": 6,
+      "fn": 26,
+      "precision": 0.979381443298969,
+      "precisionCi95": [
+        0.9557537870935641,
+        0.9905170240809786
+      ],
+      "recall": 0.9163987138263665,
+      "recallCi95": [
+        0.8803242114596648,
+        0.942311679096094
+      ],
+      "flaggedUncertainInstead": 9
+    },
+    "pavement_crack": {
+      "support": 173,
+      "tp": 163,
+      "fp": 6,
+      "fn": 10,
+      "precision": 0.9644970414201184,
+      "precisionCi95": [
+        0.9247169555422663,
+        0.9836291833502224
+      ],
+      "recall": 0.9421965317919075,
+      "recallCi95": [
+        0.8968780598913775,
+        0.9683029834830323
+      ],
+      "flaggedUncertainInstead": 4
+    },
+    "graffiti": {
+      "support": 28,
+      "tp": 27,
+      "fp": 3,
+      "fn": 1,
+      "precision": 0.9,
+      "precisionCi95": [
+        0.7437855868473338,
+        0.9654007400402839
+      ],
+      "recall": 0.9642857142857143,
+      "recallCi95": [
+        0.8228742388150134,
+        0.9936676435024582
+      ],
+      "flaggedUncertainInstead": 1
+    },
+    "flooding": {
+      "support": 16,
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1,
+      "precisionCi95": [
+        0.8063865817272801,
+        1
+      ],
+      "recall": 1,
+      "recallCi95": [
+        0.8063865817272801,
+        1
+      ],
+      "flaggedUncertainInstead": 0
+    },
+    "overflowing_trash": {
+      "support": 10,
+      "tp": 9,
+      "fp": 5,
+      "fn": 1,
+      "precision": 0.6428571428571429,
+      "precisionCi95": [
+        0.3876400468214041,
+        0.8365550926279727
+      ],
+      "recall": 0.9,
+      "recallCi95": [
+        0.5958436145024278,
+        0.9821242504842789
+      ],
+      "flaggedUncertainInstead": 0
+    },
+    "illegal_dumping": {
+      "support": 6,
+      "tp": 4,
+      "fp": 3,
+      "fn": 2,
+      "precision": 0.5714285714285714,
+      "precisionCi95": [
+        0.2504542304090258,
+        0.8417830777373732
+      ],
+      "recall": 0.6666666666666666,
+      "recallCi95": [
+        0.2999883213415286,
+        0.903230667440783
+      ],
+      "flaggedUncertainInstead": 0
+    }
+  },
+  "noIssueImages": 416,
+  "falseAlarmRate": 0.03365384615384615,
+  "falseAlarmRateCi95": [
+    0.02015071990479148,
+    0.055691216673194106
+  ],
+  "noIssueFlaggedUncertain": 31,
+  "confidenceLevels": {
+    "high": {
+      "detections": 405,
+      "correct": 402,
+      "precision": 0.9925925925925926,
+      "ci95": [
+        0.9784503603610847,
+        0.9974777252349016
+      ]
+    },
+    "moderate": {
+      "detections": 122,
+      "correct": 102,
+      "precision": 0.8360655737704918,
+      "ci95": [
+        0.7603135455133677,
+        0.8912992756840743
+      ]
+    }
+  },
+  "potholeLocalization": {
+    "detectedWithBoxAndGt": 98,
+    "boxOverlapsAnnotatedPothole": 98
+  },
+  "hostLatencyMs": {
+    "p50": 416,
+    "p90": 464
+  },
+  "robustness": {
+    "original": {
+      "images": 132,
+      "rejectedByQualityGate": 1,
+      "issueRecall": 0.9532710280373832,
+      "falseAlarmRate": 0.08
+    },
+    "evening": {
+      "images": 132,
+      "rejectedByQualityGate": 19,
+      "issueRecall": 0.8317757009345794,
+      "falseAlarmRate": 0.04
+    },
+    "night": {
+      "images": 132,
+      "rejectedByQualityGate": 132,
+      "issueRecall": 0,
+      "falseAlarmRate": 0
+    },
+    "blur_mild": {
+      "images": 132,
+      "rejectedByQualityGate": 14,
+      "issueRecall": 0.8037383177570093,
+      "falseAlarmRate": 0
+    },
+    "blur": {
+      "images": 132,
+      "rejectedByQualityGate": 128,
+      "issueRecall": 0.009345794392523364,
+      "falseAlarmRate": 0
+    },
+    "occluded": {
+      "images": 132,
+      "rejectedByQualityGate": 1,
+      "issueRecall": 0.9252336448598131,
+      "falseAlarmRate": 0.12
+    },
+    "farther": {
+      "images": 132,
+      "rejectedByQualityGate": 1,
+      "issueRecall": 0.897196261682243,
+      "falseAlarmRate": 0
+    }
+  }
+}
