@@ -105,9 +105,12 @@ class DetectionServiceImpl {
         ? onDeviceError
         : new ModelUnavailableError(message, 'load_failed');
     })();
-    this.loading.finally(() => {
+    // Clear the in-flight marker either way. The caller handles the rejection;
+    // this side chain must not surface it again as an unhandled one.
+    const clear = () => {
       this.loading = undefined;
-    });
+    };
+    this.loading.then(clear, clear);
     return this.loading;
   }
 
