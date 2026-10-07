@@ -3,6 +3,15 @@ import { geoFixFromExif } from '@/utils/exif';
 const FALLBACK = '2026-10-06T17:00:00.000Z';
 
 describe('geoFixFromExif', () => {
+  it('rejects a degrees/minutes/seconds value that fails to parse', () => {
+    // Regression: destructuring defaults turned the bad minute into 0.
+    expect(geoFixFromExif({ GPSLatitude: [37, 'x', 1], GPSLongitude: [121, 53, 10], GPSLongitudeRef: 'W' }, FALLBACK)).toBeUndefined();
+  });
+
+  it('accepts degrees with missing minutes and seconds', () => {
+    expect(geoFixFromExif({ GPSLatitude: [37], GPSLongitude: [121, 30], GPSLongitudeRef: 'W' }, FALLBACK)?.longitude).toBe(-121.5);
+  });
+
   it('reads Android-style flat GPS tags and applies the S/W hemisphere refs', () => {
     // Sydney Opera House as reported by expo-image-picker on Android.
     const fix = geoFixFromExif(

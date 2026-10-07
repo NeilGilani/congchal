@@ -39,6 +39,9 @@ describe('isStateOrFederalRouteRef', () => {
     ['TX FM 1960', true],
     ['US 101;CA 82', true],
     ['Main St', false],
+    // Regression: county roads were treated as state routes.
+    ['CR 12', false],
+    ['CO 12', true],
     ['G4', false],
     ['', false],
     [undefined, false],
@@ -83,6 +86,15 @@ describe('parseRoadContext', () => {
       NOW,
     );
     expect(ctx?.hasSidewalkTag).toBeUndefined();
+  });
+
+  it('reports the real distance of an unnamed road, without the ranking penalty', () => {
+    const ctx = parseRoadContext(
+      overpassSchema.parse({ elements: [{ type: 'way', id: 2, center: centerNorth(2), tags: { highway: 'service' } }] }),
+      here,
+      NOW,
+    );
+    expect(ctx?.distanceMeters).toBe(2);
   });
 
   it('returns undefined when nothing is nearby', () => {

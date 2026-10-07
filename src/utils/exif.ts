@@ -13,8 +13,11 @@ const num = (v: unknown): number | undefined => {
 /** EXIF GPS can be decimal degrees or [deg, min, sec]. */
 const toDegrees = (v: unknown): number | undefined => {
   if (Array.isArray(v) && v.length >= 1) {
-    const [d, m = 0, s = 0] = v.map(num);
-    if (d === undefined || m === undefined || s === undefined) return undefined;
+    const parts = v.slice(0, 3).map(num);
+    // Missing minutes/seconds default to 0, but a value that fails to parse
+    // invalidates the coordinate.
+    if (parts.some((p) => p === undefined)) return undefined;
+    const [d = 0, m = 0, s = 0] = parts as number[];
     return d + m / 60 + s / 3600;
   }
   return num(v);

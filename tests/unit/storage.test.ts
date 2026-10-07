@@ -35,6 +35,22 @@ describe('Collection', () => {
     expect(JSON.parse(store.dump()['notes:v1:index'] ?? '[]')).toEqual(['c', 'b', 'a']);
   });
 
+  it('keeps a record written while another read of a fresh collection is in flight', async () => {
+    // Regression: two independent loads raced, and the slower one replaced the
+    // cache with a stale copy that no longer contained the new record.
+    await new Collection<Note>(store, 'notes:v1', isNote).put(note('a'));
+    const fresh = new Collection<Note>(store, 'notes:v1', isNote);
+    const writing = fresh.put(note('b'));
+    await Promise.resolve();
+    await Promise.resolve();
+    const listed = await fresh.list();
+    await writing;
+    expect(listed.map((r) => r.id)).toContain('a');
+    expect(await fresh.get('b')).toEqual(note('b'));
+    await fresh.put(note('c'));
+    expect(JSON.parse(store.dump()['notes:v1:index'] ?? '[]')).toEqual(['c', 'b', 'a']);
+  });
+
   it('replaces an existing record in place without duplicating it', async () => {
     await col.put(note('a'));
     await col.put(note('b'));

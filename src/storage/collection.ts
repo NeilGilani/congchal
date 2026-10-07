@@ -12,6 +12,7 @@ interface Identified {
 export class Collection<T extends Identified> {
   private queue: Promise<unknown> = Promise.resolve();
   private cache: Map<string, T> | undefined;
+  private loading: Promise<Map<string, T>> | undefined;
   private listeners = new Set<() => void>();
 
   constructor(
@@ -34,8 +35,28 @@ export class Collection<T extends Identified> {
     return run;
   }
 
-  private async load(): Promise<Map<string, T>> {
-    if (this.cache) return this.cache;
+  /**
+   * Concurrent callers share one read of the store. Two independent reads
+   * could otherwise finish after a write and replace the cache with a stale
+   * copy, dropping the record that was just added.
+   */
+  private load(): Promise<Map<string, T>> {
+    if (this.cache) return Promise.resolve(this.cache);
+    this.loading ??= this.readAll().then(
+      (map) => {
+        this.cache ??= map;
+        this.loading = undefined;
+        return this.cache;
+      },
+      (e: unknown) => {
+        this.loading = undefined;
+        throw e;
+      },
+    );
+    return this.loading;
+  }
+
+  private async readAll(): Promise<Map<string, T>> {
     const map = new Map<string, T>();
     const rawIndex = await this.store.getItem(this.indexKey());
     const ids: unknown = rawIndex ? JSON.parse(rawIndex) : [];
@@ -52,7 +73,6 @@ export class Collection<T extends Identified> {
         }
       }
     }
-    this.cache = map;
     return map;
   }
 

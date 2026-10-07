@@ -51,13 +51,23 @@ const hostOf = (url: string): string => {
   return m?.[1]?.toLowerCase() ?? url;
 };
 
+const abortedError = (): NetworkError => new NetworkError('aborted', 'Request cancelled.');
+
 const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
-    const t = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
+    if (signal?.aborted) {
+      reject(abortedError());
+      return;
+    }
+    const onAbort = (): void => {
       clearTimeout(t);
-      reject(new NetworkError('aborted', 'Request cancelled.'));
-    });
+      reject(abortedError());
+    };
+    const t = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 
 const throttle = async (url: string, minIntervalMs: number | undefined, signal?: AbortSignal): Promise<void> => {
@@ -82,6 +92,8 @@ const isRetryable = (e: unknown): boolean =>
   (e.kind === 'timeout' || e.kind === 'offline' || e.kind === 'rate_limited' || (e.kind === 'http' && (e.status ?? 0) >= 500));
 
 const attempt = async <T>(url: string, opts: RequestOptions<T>): Promise<T> => {
+  // An 'abort' listener never fires for a signal that is already aborted.
+  if (opts.signal?.aborted) throw abortedError();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 10_000);
   const onAbort = (): void => controller.abort();
@@ -97,7 +109,7 @@ const attempt = async <T>(url: string, opts: RequestOptions<T>): Promise<T> => {
         signal: controller.signal,
       });
     } catch {
-      if (opts.signal?.aborted) throw new NetworkError('aborted', 'Request cancelled.');
+      if (opts.signal?.aborted) throw abortedError();
       if (controller.signal.aborted) throw new NetworkError('timeout', `${opts.label} timed out.`);
       throw new NetworkError('offline', `Couldn't reach ${hostOf(url)}.`);
     }

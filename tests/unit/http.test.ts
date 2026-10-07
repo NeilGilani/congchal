@@ -40,6 +40,26 @@ describe('requestJson', () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it('rejects an already-aborted signal without calling fetch', async () => {
+    const fetchMock = scriptFetch(jsonResponse({ lat: 1, lon: 2 }));
+    const controller = new AbortController();
+    controller.abort();
+    const e = await failure(requestJson(URL_A, { schema: pointSchema, label: 'Example', signal: controller.signal }));
+    expect(e.kind).toBe('aborted');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('cancels an in-flight request as soon as the caller aborts', async () => {
+    hangingFetch();
+    const controller = new AbortController();
+    const started = Date.now();
+    const pending = failure(requestJson(URL_A, { schema: pointSchema, label: 'Example', signal: controller.signal, timeoutMs: 30_000 }));
+    setTimeout(() => controller.abort(), 20);
+    const e = await pending;
+    expect(e.kind).toBe('aborted');
+    expect(Date.now() - started).toBeLessThan(5_000);
+  });
+
   it('rejects data that fails the schema as invalid_response, without retrying', async () => {
     const fetchMock = scriptFetch(jsonResponse({ lat: '37.3382' }), jsonResponse({ lat: 1, lon: 2 }));
     const e = await failure(requestJson(URL_A, { schema: pointSchema, label: 'Example', retries: 2 }));

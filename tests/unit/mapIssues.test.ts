@@ -2,7 +2,7 @@ import type { PublicReport } from '@/models/civic';
 import { mapRawCategory } from '@/services/civic/categoryMapping';
 import { filterAndSort, isUnresolved, publicToMapIssue, scanToMapIssue, toFeatureCollection, type MapIssue } from '@/services/civic/mapIssues';
 
-import { makeDetection, makeFix, makeScan } from '../fixtures/records';
+import { makeFix, makeScan } from '../fixtures/records';
 
 const here = { latitude: 37.3382, longitude: -121.8863 };
 /** Point `meters` north of `here` (1° latitude ≈ 111,195 m). */
@@ -170,6 +170,13 @@ describe('mapRawCategory with real 311 request types', () => {
     ['Sidewalk Repair', 'sidewalk_damage'],
     ['Blocked Sidewalk', 'pedestrian_obstruction'],
     ['Blocked Driveway', undefined],
+    // Regression: "tree" used to match inside "Street".
+    ['Street Light Out', undefined],
+    ['Street Light Out Complaint', undefined],
+    ['Water on Street', 'flooding'],
+    ['Street Defect', 'pavement_crack'],
+    ['Fallen Tree Branches', 'fallen_tree'],
+    ['Design Review', undefined],
     ['Abandoned Vehicle', undefined],
     ['Rodent', undefined],
   ])('%s -> %s', (text, expected) => {

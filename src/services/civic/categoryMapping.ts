@@ -9,8 +9,9 @@ const RULES: readonly [RegExp, IssueCategory][] = [
   [/graffiti|tagging/i, 'graffiti'],
   [/(illegal|fly)[\s-]?dump|bulky (item|waste)|abandoned (furniture|items?|mattress)|dumping/i, 'illegal_dumping'],
   [/(overflow|full).*(basket|can|bin|trash|garbage|litter)|litter|dirty (condition|street|sidewalk)|street (and|&) sidewalk cleaning|trash|garbage/i, 'overflowing_trash'],
-  [/sign\b|signs\b|signage|street sign/i, 'damaged_sign'],
-  [/tree|branch|limb/i, 'fallen_tree'],
+  [/\bsigns?\b|\bsignage\b/i, 'damaged_sign'],
+  // Word boundaries: "tree" must not match inside "Street".
+  [/\btrees?\b|\bbranch(es)?\b|\blimbs?\b/i, 'fallen_tree'],
   [/flood|ponding|catch basin|storm ?drain|water on street|sewer backup/i, 'flooding'],
   [/sidewalk (condition|repair|damage|defect|inspection)|curb (damage|repair)|trip hazard|sidewalk or curb/i, 'sidewalk_damage'],
   [/block(ed)? (sidewalk|street|path)|obstruct|encroach/i, 'pedestrian_obstruction'],
