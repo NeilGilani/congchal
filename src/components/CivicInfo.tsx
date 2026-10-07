@@ -1,16 +1,20 @@
 import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { CATEGORY_INFO } from '@/constants/categories';
 import { colors, space } from '@/constants/theme';
 import { useIsOffline } from '@/hooks/useNetwork';
+import { useSettings } from '@/hooks/useStore';
 import type { DuplicateCandidate } from '@/models/civic';
 import type { IssueCategory } from '@/models/issue';
 import type { Scan } from '@/models/scan';
 import { duplicateHeadline } from '@/services/civic/duplicateDetection';
 import { classifyAccuracy, locationQualityMessage } from '@/services/location/locationQuality';
+import { LocationService } from '@/services/location/locationService';
 import { departmentFor } from '@/services/report/reportService';
+import { attachCurrentLocation } from '@/services/scan/scanActions';
 import { formatAccuracy, formatCoordinates, formatDistance } from '@/utils/geo';
 import { formatRelative } from '@/utils/format';
 import { safeHttpUrl } from '@/utils/sanitize';
@@ -21,6 +25,69 @@ import { Card, Divider, Row, Section } from './Layout';
 import { T } from './Typography';
 
 const ACC_COLOR = { good: colors.positive, fair: colors.caution, poor: colors.critical, unknown: colors.textSecondary } as const;
+
+/**
+ * For a scan without a location: attaches the device's current position, but
+ * only when the user says they are at the spot. CivicLens never guesses where
+ * an uploaded photo was taken.
+ */
+export const AddOnSiteLocation = ({ scan }: { scan: Scan }) => {
+  const { settings } = useSettings();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+  if (scan.location || scan.isDemo || !settings.attachLocation) return null;
+  const run = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const permission = await LocationService.getPermission();
+      if (permission !== 'granted' && (await LocationService.requestPermission()) !== 'granted') {
+        setError('Location permission is needed for this. You can allow it in Settings.');
+        return;
+      }
+      await attachCurrentLocation(scan, settings);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't get your location.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <View style={styles.pad}>
+      <T variant="caption" tone="secondary">
+        {scan.source === 'gallery'
+          ? 'Only if you are standing where this photo was taken:'
+          : 'If you are still where you took this photo:'}
+      </T>
+      <Button
+        label="I'm at this spot: use my location"
+        icon="locate"
+        variant="secondary"
+        loading={busy}
+        onPress={() => void run()}
+        accessibilityHint="Attaches your device's current location to this scan"
+      />
+      {error ? (
+        <T variant="caption" tone="caution" accessibilityRole="alert">
+          {error}
+        </T>
+      ) : null}
+    </View>
+  );
+};
+
+const locationSourceHint = (source: NonNullable<Scan['location']>['source']): string | undefined => {
+  switch (source) {
+    case 'photo-exif':
+      return "From the photo's GPS data";
+    case 'on-site':
+      return 'Your location when you confirmed you were at the spot (not from the photo)';
+    case 'demo':
+      return 'Sample location (Demo Mode)';
+    default:
+      return undefined;
+  }
+};
 
 export const LocationSummary = ({ scan, units }: { scan: Scan; units: 'imperial' | 'metric' }) => {
   const offline = useIsOffline();
@@ -34,9 +101,10 @@ export const LocationSummary = ({ scan, units }: { scan: Scan; units: 'imperial'
           hint={
             scan.source === 'gallery'
               ? "This photo has no GPS data, so CivicLens won't guess where it was taken."
-              : 'Location was off or unavailable. You can describe the place in the report.'
+              : 'Location was off or unavailable when you scanned.'
           }
         />
+        <AddOnSiteLocation scan={scan} />
       </Card>
     );
   }
@@ -51,7 +119,7 @@ export const LocationSummary = ({ scan, units }: { scan: Scan; units: 'imperial'
           scan.address?.formatted ??
           (pendingPlace ? (offline ? 'Address will be looked up when you are online' : 'Finding address…') : 'Address unavailable')
         }
-        hint={scan.location.source === 'photo-exif' ? 'From the photo\'s GPS data' : scan.location.source === 'demo' ? 'Sample location (Demo Mode)' : undefined}
+        hint={locationSourceHint(scan.location.source)}
       />
       <Divider />
       <Row

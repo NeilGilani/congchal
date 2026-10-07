@@ -57,3 +57,10 @@ export interface Scan {
   /** Free-text note from the user. */
   note?: string;
 }
+
+/**
+ * When the photo was taken: an uploaded photo's own EXIF time (carried in its
+ * location fix), otherwise the moment it was scanned.
+ */
+export const photographedAt = (scan: Pick<Scan, 'createdAt' | 'location'>): string =>
+  scan.location?.source === 'photo-exif' ? scan.location.timestamp : scan.createdAt;

@@ -4,6 +4,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, TextInpu
 
 import { DemoBadge, Pill } from '@/components/Badges';
 import { Button } from '@/components/Button';
+import { AddOnSiteLocation } from '@/components/CivicInfo';
 import { CategoryPicker, Segmented } from '@/components/Controls';
 import { EvidenceImage } from '@/components/EvidenceImage';
 import { Card, Divider, Row, Screen, Section } from '@/components/Layout';
@@ -13,6 +14,7 @@ import { CATEGORY_INFO } from '@/constants/categories';
 import { colors, radius, space, type as typeScale } from '@/constants/theme';
 import { useReport, useScan, useSettings } from '@/hooks/useStore';
 import type { SeverityLevel } from '@/models/issue';
+import { photographedAt } from '@/models/scan';
 import { checkReport, departmentFor, generateDescription, isReportReady, updateReport } from '@/services/report/reportService';
 import { formatAccuracy, formatCoordinates } from '@/utils/geo';
 import { CONFIDENCE_LABEL, formatDateTime, formatPercent } from '@/utils/format';
@@ -70,8 +72,16 @@ export const ReportScreen = ({ reportId }: { reportId: string }) => {
       dept.name !== report.department?.name ||
       dept.certainty !== report.department?.certainty ||
       scan.jurisdiction?.displayName !== report.jurisdiction?.displayName ||
-      scan.address?.formatted !== report.address?.formatted;
-    if (changed) void updateReport(report, { department: dept, jurisdiction: scan.jurisdiction, address: scan.address });
+      scan.address?.formatted !== report.address?.formatted ||
+      (!report.location && Boolean(scan.location));
+    if (changed) {
+      void updateReport(report, {
+        department: dept,
+        jurisdiction: scan.jurisdiction,
+        address: scan.address,
+        location: report.location ?? scan.location,
+      });
+    }
   }, [report, scan]);
 
   const checks = useMemo(() => (report ? checkReport({ ...report, description: draft ?? report.description }) : []), [report, draft]);
@@ -212,7 +222,8 @@ export const ReportScreen = ({ reportId }: { reportId: string }) => {
               </>
             ) : null}
             <Divider />
-            <Row icon="clock" label="Photographed" value={formatDateTime(scan?.createdAt ?? report.createdAt)} />
+            <Row icon="clock" label="Photographed" value={formatDateTime(scan ? photographedAt(scan) : report.createdAt)} />
+            {scan && !report.location ? <AddOnSiteLocation scan={scan} /> : null}
           </Card>
         </Section>
 

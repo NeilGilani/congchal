@@ -2,7 +2,9 @@ import type { DuplicateCandidate } from '@/models/civic';
 import type { IssueCategory } from '@/models/issue';
 import type { Report } from '@/models/report';
 import type { Scan } from '@/models/scan';
-import { createDraftReport } from '@/services/report/reportService';
+import type { UserSettings } from '@/models/settings';
+import { LocationService } from '@/services/location/locationService';
+import { createDraftReport, updateReport } from '@/services/report/reportService';
 import { deleteScanImage } from '@/storage/imageStore';
 import { getRepositories, reportsFor, scansFor } from '@/storage/repositories';
 
@@ -82,4 +84,29 @@ export const clearAllHistory = async (): Promise<void> => {
   await repos.scans.clear();
   await repos.demoReports.clear();
   await repos.demoScans.clear();
+};
+
+/**
+ * For an uploaded photo without GPS data: attaches the device's current
+ * position, only after the user confirms they are at the spot. The fix is
+ * labeled `on-site` everywhere it is shown, so it is never presented as the
+ * photo's own location. Draft reports for the scan pick it up too.
+ */
+export const attachCurrentLocation = async (scan: Scan, settings: UserSettings): Promise<Scan | undefined> => {
+  if (scan.location) return scan;
+  const fix = await LocationService.getCurrentFix(10_000);
+  const location = { ...fix, source: 'on-site' as const };
+  const updated = await scansFor(scan.isDemo).update(scan.id, (s) => ({
+    ...s,
+    location,
+    pendingLookups: ['address', 'jurisdiction', 'civic'],
+    updatedAt: new Date().toISOString(),
+  }));
+  for (const r of (await reportsFor(scan.isDemo).list()).filter((x) => x.scanId === scan.id && !x.location)) {
+    await updateReport(r, { location });
+  }
+  if (updated && settings.civicLookupsEnabled && !settings.localOnlyMode) {
+    void enrichScan(updated.id, updated.isDemo).catch(() => undefined);
+  }
+  return updated;
 };

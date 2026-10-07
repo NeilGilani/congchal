@@ -176,6 +176,12 @@ uploaded.
   build machine. `npm run web:local` builds the app and serves it with the
   cross-origin isolation headers that let WebAssembly use several threads:
   about 2–3 s per scan.
+- Uploaded photos keep their location: CivicLens reads the GPS position and
+  capture time from the photo file itself (browsers' photo pickers don't
+  pass them on). Some apps and phones strip location when sharing photos;
+  for a photo without GPS, "I'm at this spot: use my location" attaches
+  your current position, labeled as such, but only if you say you are there.
+  iPhone HEIC photos open in Safari; other browsers need JPEG.
 - Browser differences: the interactive map is phone-only (the web shows the
   list), "Save PDF" opens the print dialog (choose "Save as PDF"), email
   opens your mail app without the PDF attached, and scans and photos are

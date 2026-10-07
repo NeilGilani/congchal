@@ -5,7 +5,11 @@ export interface GeoFix {
   accuracy: number | null;
   altitude?: number | null;
   timestamp: string;
-  source: 'gps' | 'last-known' | 'photo-exif' | 'demo';
+  /**
+   * `on-site`: the device's position when the user confirmed being at the
+   * spot, for an uploaded photo that carried no GPS data.
+   */
+  source: 'gps' | 'last-known' | 'photo-exif' | 'on-site' | 'demo';
 }
 
 export type LocationQuality = 'good' | 'fair' | 'poor' | 'unknown';

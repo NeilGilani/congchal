@@ -1,4 +1,5 @@
 import { ANALYSIS_LONG_SIDE } from './constants';
+import { UnsupportedImageError } from './decode';
 import type { RgbImage } from './types';
 
 export interface PreparedImage {
@@ -22,11 +23,28 @@ const fit = (w: number, h: number, longSide: number): { width: number; height: n
   return { width: Math.max(1, Math.round(w * scale)), height: Math.max(1, Math.round(h * scale)) };
 };
 
+/** HEIF/HEIC (iPhone's default format) starts with an ISO-BMFF "ftyp" box naming a HEIF brand. */
+const isHeic = async (blob: Blob): Promise<boolean> => {
+  const head = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+  const box = String.fromCharCode(...head.subarray(4, 12));
+  return /^ftyp(heic|heix|hevc|hevx|mif1|msf1)$/.test(box);
+};
+
 /** Decodes any URI the browser can fetch (data:, blob:, same-origin http) and applies EXIF orientation. */
 const loadBitmap = async (uri: string): Promise<ImageBitmap> => {
   const res = await fetch(uri);
   if (!res.ok) throw new Error(`Could not read the photo (HTTP ${res.status}).`);
-  return createImageBitmap(await res.blob(), { imageOrientation: 'from-image' });
+  const blob = await res.blob();
+  try {
+    return await createImageBitmap(blob, { imageOrientation: 'from-image' });
+  } catch {
+    if (await isHeic(blob)) {
+      throw new UnsupportedImageError(
+        'This is a HEIC photo, which this browser cannot open. Use Safari, or export the photo as JPEG (on iPhone: Settings → Camera → Formats → Most Compatible).',
+      );
+    }
+    throw new UnsupportedImageError('This file could not be opened as a photo. Try a JPEG or PNG image.');
+  }
 };
 
 const draw = (bitmap: ImageBitmap, width: number, height: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } => {

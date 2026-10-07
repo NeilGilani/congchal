@@ -7,6 +7,7 @@ import { Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, tapFeedback } from '@/components/Button';
+import { Banner } from '@/components/States';
 import { ScanReticle } from '@/components/camera/ScanReticle';
 import { Icon, type IconName } from '@/components/Icon';
 import { LogoMark } from '@/components/Logo';
@@ -26,6 +27,7 @@ import { createScanFromPhoto } from '@/services/scan/scanService';
 import { CONFIDENCE_LABEL, formatPercent } from '@/utils/format';
 import { formatAccuracy } from '@/utils/geo';
 import { geoFixFromExif } from '@/utils/exif';
+import { readExifFromPhoto } from '@/utils/exifJpeg';
 import { log } from '@/utils/logger';
 
 type Phase = 'idle' | 'capturing' | 'analyzing';
@@ -129,7 +131,9 @@ export const CameraScreen = () => {
           uri = a.uri;
           w = a.width;
           h = a.height;
-          exifLocation = settings.attachLocation ? geoFixFromExif(a.exif, new Date().toISOString()) : undefined;
+          // Browsers' photo pickers return no EXIF, so the GPS position is read from the file itself.
+          const exif = a.exif ?? (Platform.OS === 'web' ? await readExifFromPhoto(a.uri, a.file) : undefined);
+          exifLocation = settings.attachLocation ? geoFixFromExif(exif, new Date().toISOString()) : undefined;
           setFrozenUri(a.uri);
         }
         setPhase('analyzing');
@@ -183,7 +187,18 @@ export const CameraScreen = () => {
               Camera access was turned off for CivicLens. Enable it in your {Platform.OS === 'web' ? 'browser’s site settings' : 'phone’s settings'}.
             </T>
           ) : null}
-          <Button label="Analyze a photo instead" icon="gallery" variant="secondary" onPress={() => void runScan('gallery')} />
+          {error ? (
+            <Banner tone="critical" title={error.title} body={error.body}>
+              {error.model ? <Button label="Demo Mode" icon="flask" variant="demo" onPress={() => router.push('/demo')} /> : null}
+            </Banner>
+          ) : null}
+          <Button
+            label={phase === 'analyzing' ? 'Analyzing your photo…' : 'Analyze a photo instead'}
+            icon="gallery"
+            variant="secondary"
+            loading={phase !== 'idle'}
+            onPress={() => void runScan('gallery')}
+          />
           <Button label="Try Demo Mode" icon="flask" variant="ghost" onPress={() => router.push('/demo')} />
         </View>
       </View>

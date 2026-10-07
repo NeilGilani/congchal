@@ -2,7 +2,7 @@ import { CATEGORY_INFO } from '@/constants/categories';
 import type { DepartmentMatch } from '@/models/civic';
 import type { IssueCategory } from '@/models/issue';
 import type { ExportChannel, Report, ReportCheck } from '@/models/report';
-import type { Scan } from '@/models/scan';
+import { photographedAt, type Scan } from '@/models/scan';
 import { matchDepartment } from '@/services/civic/departmentService';
 import { classifyAccuracy } from '@/services/location/locationQuality';
 import { reportsFor, scansFor } from '@/storage/repositories';
@@ -48,7 +48,8 @@ export const generateDescription = (scan: Scan, category: IssueCategory): string
     const note = det.severity.factors.find((f) => f.id === 'safety' && f.value > 0.6)?.note;
     if (note) parts.push(note);
   }
-  parts.push(`Photographed ${formatDateLong(scan.createdAt)} at ${formatTime(scan.createdAt)}.`);
+  const taken = photographedAt(scan);
+  parts.push(`Photographed ${formatDateLong(taken)} at ${formatTime(taken)}.`);
   return parts.join(' ');
 };
 
@@ -106,7 +107,7 @@ export const checkReport = (report: Report): ReportCheck[] => {
       passed: Boolean(report.location),
       blocking: true,
       hint: !report.location
-        ? 'Turn on location or add the address in the description.'
+        ? 'Needed so the report reaches the right place. Use a photo with GPS data, or "Use my current location" if you are at the spot.'
         : acc === 'poor'
           ? 'Location accuracy is low. Mention a nearby landmark in the description.'
           : undefined,
