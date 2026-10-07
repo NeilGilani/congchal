@@ -90,3 +90,8 @@ temperature fitting is carved out of the training split only
 or evaluate honestly. The model does not detect them, and the app says so
 instead of guessing. Users can still pick these categories by hand when
 writing a report.
+
+Their photos are kept, but `build_head.py` and `evaluate.ts` count them as
+`none`. So the model's `none` class means "none of the six supported
+issues", not "nothing wrong here": 17 training photos and 5 test photos
+labeled `none` show one of these unsupported problems.

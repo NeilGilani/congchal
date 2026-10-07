@@ -29,8 +29,8 @@ const CC_BY_2 = 'https://creativecommons.org/licenses/by/2.0/';
 /**
  * Six sample photos for Demo Mode. They are Open Images V7 photos from
  * Flickr (CC BY 2.0). None of them was used to train the model: five are not
- * in the CivicLens dataset at all, and the stop sign is in it only as a
- * `damaged_sign` example, a class the model does not learn.
+ * in the CivicLens dataset at all, and the dead-end sign is in its held-out
+ * test split.
  *
  * The app does not store expected answers for these photos. Each run sends
  * the photo through the same analysis as a camera scan and shows whatever the
@@ -57,7 +57,7 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     id: 'sidewalk',
     title: 'Damaged sidewalk',
     shows: 'sidewalk_damage',
-    summary: 'A broken, washed-out sidewalk edge next to a road.',
+    summary: 'A broken, washed-out sidewalk edge beside a pitted road.',
     image: require('../../assets/demo/sidewalk.jpg') as number,
     location: { latitude: 37.33772, longitude: -121.88634, label: 'Sample location: downtown San José, CA' },
     attribution: {
@@ -117,13 +117,13 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     id: 'damaged-sign',
     title: 'Damaged sign',
     shows: 'damaged_sign',
-    summary: 'A stop sign dented by several bullet holes.',
+    summary: 'A rusted dead-end sign with a hole through it.',
     image: require('../../assets/demo/damaged-sign.jpg') as number,
     location: { latitude: 33.44838, longitude: -112.07404, label: 'Sample location: downtown Phoenix, AZ' },
     attribution: {
-      title: 'rural life',
-      author: 'andres musta',
-      url: 'https://www.flickr.com/photos/andresmusta/6264442425',
+      title: 'Dead End - close up',
+      author: 'Benny Lin',
+      url: 'https://www.flickr.com/photos/benny_lin/191393602',
       license: 'CC BY 2.0',
       licenseUrl: CC_BY_2,
     },
