@@ -42,14 +42,21 @@ export interface ImageQualityReport {
 }
 
 /**
- * Thresholds. Sharpness thresholds were calibrated with
- * `tools/ml/calibrate_quality.ts` against real photos and the same photos with
- * synthetic Gaussian blur (see docs/EVALUATION.md, "Image quality gate").
+ * Thresholds, calibrated with `tools/ml/calibrate_quality.ts` on 481 real
+ * training photos at the app's 512 px analysis resolution
+ * (docs/eval/quality-calibration.json):
+ *  - sharpness (Laplacian variance): real photos p1 = 66, p2 = 93, median 1109;
+ *    after a ~1.5 px blur the median is 73, after ~3 px it is 13, after ~6 px 2.6.
+ *    Blocking at 20 rejects < 1% of real photos and most ≥3 px blurs; the
+ *    warning at 60 flags roughly half of the ~1.5 px blurs.
+ *  - mean luma: real photos p1 = 29, so blocking at 28 only rejects near-black frames.
+ *  - flat-cell ratio: real photos p99 = 0.55, so 0.92 means "nothing in frame".
+ *  - minimum side 160 px: smaller images (thumbnails, screenshots) can't be read.
  */
 export const QUALITY_THRESHOLDS = {
   analysisSide: 320,
-  blurBlocking: 18,
-  blurWarning: 45,
+  blurBlocking: 20,
+  blurWarning: 60,
   darkBlocking: 28,
   darkWarning: 50,
   overexposedClip: 0.45,
@@ -58,7 +65,7 @@ export const QUALITY_THRESHOLDS = {
   featurelessRatio: 0.92,
   obstructedRatio: 0.7,
   obstructedMaxLuma: 70,
-  minSide: 240,
+  minSide: 160,
 } as const;
 
 const laplacianVariance = (luma: Float32Array, w: number, h: number): number => {

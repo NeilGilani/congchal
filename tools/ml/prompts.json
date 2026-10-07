@@ -1,0 +1,132 @@
+{
+  "class:pothole": [
+    "a pothole in the road",
+    "a photo of a pothole in an asphalt street",
+    "a deep hole in the pavement of a road",
+    "a water-filled pothole on a street",
+    "a damaged road with a large pothole"
+  ],
+  "class:pavement_crack": [
+    "cracked asphalt road surface",
+    "a road with large cracks in the pavement",
+    "alligator cracking on asphalt",
+    "a crack running across the pavement",
+    "crumbling, deteriorated pavement"
+  ],
+  "class:sidewalk_damage": [
+    "a broken, cracked sidewalk",
+    "an uneven sidewalk slab lifted by tree roots",
+    "a damaged concrete sidewalk that is a tripping hazard",
+    "a sidewalk with a missing, broken section of concrete"
+  ],
+  "class:graffiti": [
+    "graffiti tags spray painted on a wall",
+    "vandalism graffiti on a building",
+    "graffiti on a sign, pole or utility box",
+    "spray paint vandalism on a public wall"
+  ],
+  "class:overflowing_trash": [
+    "an overflowing trash can on a street",
+    "garbage piled up next to a public trash bin",
+    "litter scattered all over the sidewalk",
+    "trash and plastic bags littering the ground"
+  ],
+  "class:illegal_dumping": [
+    "illegally dumped furniture on the side of the street",
+    "a discarded mattress dumped on the sidewalk",
+    "a pile of dumped junk and trash bags in an alley",
+    "old tires dumped by the road",
+    "a heap of construction debris dumped on a vacant lot"
+  ],
+  "class:damaged_sign": [
+    "a bent, damaged traffic sign",
+    "a knocked down street sign lying on the ground",
+    "a vandalized stop sign",
+    "a faded, unreadable road sign",
+    "a leaning sign post"
+  ],
+  "class:fallen_tree": [
+    "a fallen tree blocking a road",
+    "large broken tree branches lying on the sidewalk",
+    "a tree knocked down onto a street after a storm",
+    "a downed tree across a path"
+  ],
+  "class:flooding": [
+    "a flooded street",
+    "a large puddle of standing water covering the road",
+    "a clogged storm drain with water pooling",
+    "a sidewalk covered by floodwater"
+  ],
+  "class:pedestrian_obstruction": [
+    "a sidewalk blocked by an obstacle",
+    "a car parked on the sidewalk blocking pedestrians",
+    "construction materials blocking a sidewalk",
+    "a curb ramp blocked by an object",
+    "bins and objects blocking a narrow walkway"
+  ],
+  "class:none": [
+    "a clean, well-maintained street",
+    "a smooth paved road",
+    "an intact, clean sidewalk",
+    "a building facade",
+    "a colorful mural painted on a wall",
+    "a tidy trash can on a sidewalk",
+    "a normal street sign",
+    "a park with trees and grass",
+    "a photo of a person",
+    "an indoor room",
+    "a parked car on a street",
+    "a photo of food",
+    "a pet animal",
+    "the sky and clouds",
+    "a close-up of a hand",
+    "a computer screen or phone"
+  ],
+  "ctx:roadway": ["an asphalt road where cars drive", "a street lane with painted road markings"],
+  "ctx:sidewalk": ["a concrete sidewalk for pedestrians", "a paved footpath next to a street"],
+  "ctx:bike_lane": ["a bike lane marked on the road", "a protected bicycle lane"],
+  "ctx:curb_ramp": ["a curb ramp at a street corner", "a sloped wheelchair ramp from the sidewalk to the crosswalk"],
+  "ctx:crosswalk": ["a pedestrian crosswalk with white stripes"],
+  "ctx:wall": ["the wall of a building", "a fence or wall along a street"],
+  "ctx:alley": ["a narrow alley behind buildings"],
+  "ctx:parking": ["a parking lot", "cars parked along a curb"],
+  "ctx:park": ["grass and trees in a park"],
+  "ctx:indoors": ["an indoor room", "the inside of a building"],
+  "ev:pothole:hole": ["a deep hole in the asphalt"],
+  "ev:pothole:water": ["a hole in the road filled with water"],
+  "ev:pothole:edges": ["broken, jagged edges of asphalt around a hole"],
+  "ev:pothole:debris": ["loose gravel and broken pieces of asphalt"],
+  "ev:crack:linear": ["long linear cracks in the pavement"],
+  "ev:crack:alligator": ["a web of interconnected cracks in asphalt"],
+  "ev:crack:crumbling": ["crumbling, broken-up road surface"],
+  "ev:sidewalk:uplift": ["a raised, uneven sidewalk slab"],
+  "ev:sidewalk:cracked": ["a cracked concrete slab"],
+  "ev:sidewalk:roots": ["tree roots pushing up the pavement"],
+  "ev:sidewalk:gap": ["a gap or missing piece in the sidewalk"],
+  "ev:graffiti:tags": ["spray-painted tags and scribbles"],
+  "ev:graffiti:letters": ["painted letters on a surface"],
+  "ev:graffiti:on_property": ["graffiti on a sign, pole, or utility box"],
+  "ev:trash:full_bin": ["a trash can full to the brim with garbage"],
+  "ev:trash:bags": ["garbage bags piled on the ground"],
+  "ev:trash:litter": ["scattered litter on the ground"],
+  "ev:dumping:mattress": ["a discarded mattress"],
+  "ev:dumping:furniture": ["abandoned furniture outdoors"],
+  "ev:dumping:pile": ["a pile of bulky junk"],
+  "ev:dumping:tires": ["old tires on the ground"],
+  "ev:sign:bent": ["a bent or twisted sign pole"],
+  "ev:sign:down": ["a sign lying on the ground"],
+  "ev:sign:defaced": ["a faded or vandalized sign"],
+  "ev:tree:trunk": ["a fallen tree trunk"],
+  "ev:tree:branches": ["broken branches lying across a path"],
+  "ev:flood:standing": ["standing water covering the pavement"],
+  "ev:flood:drain": ["a flooded storm drain"],
+  "ev:obstruction:object": ["an object blocking the walkway"],
+  "ev:obstruction:vehicle": ["a vehicle parked on the sidewalk"],
+  "ev:obstruction:construction": ["construction barriers on the sidewalk"],
+  "ev:obstruction:narrow": ["a path too narrow for a wheelchair to pass"],
+  "hz:in_traffic": ["a hazard in the middle of a traffic lane"],
+  "hz:tripping": ["a tripping hazard for pedestrians"],
+  "hz:large": ["a very large, severe defect"],
+  "hz:minor": ["a small, minor defect"],
+  "hz:blocks_wheelchair": ["an obstruction that would block a wheelchair user"]
+}

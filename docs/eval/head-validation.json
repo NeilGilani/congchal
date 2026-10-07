@@ -1,0 +1,94 @@
+{
+  "temperature": 0.6399823281899685,
+  "thresholds": {
+    "detect": 0.55,
+    "high": 0.9,
+    "uncertain": 0.35
+  },
+  "validation_sweep": [
+    {
+      "tau": 0.3,
+      "false_alarm_rate": 0.06072874493927125,
+      "issue_recall": 0.972809667673716,
+      "precision": 0.9415204678362573
+    },
+    {
+      "tau": 0.35,
+      "false_alarm_rate": 0.05668016194331984,
+      "issue_recall": 0.972809667673716,
+      "precision": 0.9442815249266863
+    },
+    {
+      "tau": 0.4,
+      "false_alarm_rate": 0.05263157894736842,
+      "issue_recall": 0.9697885196374623,
+      "precision": 0.9469026548672567
+    },
+    {
+      "tau": 0.45,
+      "false_alarm_rate": 0.048582995951417005,
+      "issue_recall": 0.9697885196374623,
+      "precision": 0.9497041420118343
+    },
+    {
+      "tau": 0.5,
+      "false_alarm_rate": 0.048582995951417005,
+      "issue_recall": 0.9667673716012085,
+      "precision": 0.9495548961424333
+    },
+    {
+      "tau": 0.55,
+      "false_alarm_rate": 0.048582995951417005,
+      "issue_recall": 0.9607250755287009,
+      "precision": 0.9520958083832335
+    },
+    {
+      "tau": 0.6,
+      "false_alarm_rate": 0.04048582995951417,
+      "issue_recall": 0.9607250755287009,
+      "precision": 0.9607250755287009
+    },
+    {
+      "tau": 0.65,
+      "false_alarm_rate": 0.03643724696356275,
+      "issue_recall": 0.9607250755287009,
+      "precision": 0.9636363636363636
+    },
+    {
+      "tau": 0.7,
+      "false_alarm_rate": 0.03643724696356275,
+      "issue_recall": 0.9516616314199395,
+      "precision": 0.963302752293578
+    },
+    {
+      "tau": 0.75,
+      "false_alarm_rate": 0.03643724696356275,
+      "issue_recall": 0.945619335347432,
+      "precision": 0.9660493827160493
+    },
+    {
+      "tau": 0.8,
+      "false_alarm_rate": 0.03643724696356275,
+      "issue_recall": 0.9214501510574018,
+      "precision": 0.9651898734177216
+    },
+    {
+      "tau": 0.85,
+      "false_alarm_rate": 0.020242914979757085,
+      "issue_recall": 0.8942598187311178,
+      "precision": 0.976897689768977
+    },
+    {
+      "tau": 0.9,
+      "false_alarm_rate": 0.012145748987854251,
+      "issue_recall": 0.8398791540785498,
+      "precision": 0.9823321554770318
+    },
+    {
+      "tau": 0.95,
+      "false_alarm_rate": 0.004048582995951417,
+      "issue_recall": 0.7462235649546828,
+      "precision": 0.988
+    }
+  ]
+}
