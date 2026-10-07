@@ -73,7 +73,7 @@ export class LiveFrameFusion {
 
   constructor(private readonly config: TemporalConfig = DEFAULT_TEMPORAL_CONFIG) {}
 
-  current(): LiveState {
+  snapshot(): LiveState {
     return this.state;
   }
 

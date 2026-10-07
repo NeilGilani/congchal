@@ -8,7 +8,6 @@ const MAX_DESCRIPTION = 2000;
 export const sanitizeUserText = (input: string, maxLength = MAX_DESCRIPTION): string =>
   input
     .normalize('NFC')
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F​-‏‪-‮⁦-⁩]/g, '')
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t]{3,}/g, '  ')
