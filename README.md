@@ -215,6 +215,30 @@ uploaded.
 - If Windows asks whether to let Node.js through the firewall, you can
   choose Cancel: the app only needs localhost.
 
+### macOS
+
+1. Install [Node.js 22 LTS](https://nodejs.org) (the macOS installer works
+   on Apple silicon and Intel Macs; or `brew install node@22`). Git comes
+   with Apple's command line tools: run `xcode-select --install` if `git`
+   is missing.
+2. In Terminal:
+
+   ```bash
+   git clone https://github.com/NeilGilani/congchal.git
+   cd congchal
+   git checkout claude/magical-clarke-h0z1z4
+   npm install
+   npm run web:local
+   ```
+
+3. Open **http://localhost:8080** in Safari, Chrome or Edge. Stop the
+   server with Ctrl+C.
+
+- For the camera and location, allow your browser under **System Settings
+  → Privacy & Security → Camera** and **→ Location Services**, then allow
+  both when the page asks. A Mac uses its built-in (front) camera.
+- Safari opens iPhone HEIC photos directly; Chrome and Edge need JPEG.
+
 ### Run on a device
 
 ```bash
