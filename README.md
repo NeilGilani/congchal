@@ -187,6 +187,34 @@ uploaded.
   opens your mail app without the PDF attached, and scans and photos are
   stored in the browser's IndexedDB on your computer.
 
+### Windows (for example a Surface)
+
+1. Install [Node.js 22 LTS](https://nodejs.org) (the installer picks the
+   x64 or ARM64 build for your Surface) and
+   [Git for Windows](https://git-scm.com/download/win).
+2. In PowerShell:
+
+   ```powershell
+   git clone https://github.com/NeilGilani/congchal.git
+   cd congchal
+   git checkout claude/magical-clarke-h0z1z4
+   npm install
+   npm run web:local
+   ```
+
+3. Open **http://localhost:8080** in Edge or Chrome. Stop the server with
+   Ctrl+C; next time, `npm run web:local` is all you need.
+
+- If PowerShell says *running scripts is disabled on this system*, run
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once (or use
+  Command Prompt instead).
+- For scanning with the camera and attaching your location, turn on
+  **Settings → Privacy & security → Camera** and **→ Location** (including
+  access for desktop apps), then allow both when the browser asks. On a
+  Surface the app uses the rear camera.
+- If Windows asks whether to let Node.js through the firewall, you can
+  choose Cancel: the app only needs localhost.
+
 ### Run on a device
 
 ```bash

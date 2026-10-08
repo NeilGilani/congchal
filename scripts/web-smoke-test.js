@@ -35,7 +35,9 @@ try {
 
 const nodeResults = () => {
   const files = SCENARIOS.map(([, id]) => path.join('assets', 'demo', `${id}.jpg`));
-  const out = execFileSync('npx', ['tsx', 'tools/ml/analyze.ts', ...files, '--json'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 24 });
+  // Run tsx through Node itself: `npx` is `npx.cmd` on Windows and can't be spawned without a shell.
+  const tsx = require.resolve('tsx/cli');
+  const out = execFileSync(process.execPath, [tsx, 'tools/ml/analyze.ts', ...files, '--json'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 24 });
   const rows = JSON.parse(out.slice(out.indexOf('[')));
   return Object.fromEntries(rows.map((r) => [path.basename(r.file, '.jpg'), r]));
 };
